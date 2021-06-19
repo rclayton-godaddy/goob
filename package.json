@@ -1,0 +1,21 @@
+{
+  "name": "goob",
+  "version": "0.0.1",
+  "description": "Highly opinionated logger for making observability easy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepublish": "tsc"
+  },
+  "author": "rclayton-godaddy",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/pino": "^6.3.8",
+    "ecs-schema": "0.0.1",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {
+    "pino": "^6.11.3"
+  }
+}
