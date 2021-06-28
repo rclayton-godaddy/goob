@@ -23,7 +23,6 @@ export type MetricsOptions = {
  */
 export interface LogFn {
   (schema: ElasticCommonSchema, message?: string, ...args: any[]): void
-  (message: string, ...args: any[]): void
 }
 
 /**
@@ -31,7 +30,6 @@ export interface LogFn {
  */
 export interface GaugeFn {
   (schema: ElasticCommonSchema, gaugeName: string, measurement: number, options?: MetricsOptions): void
-  (gaugeName: string, measurement: number, options?: MetricsOptions): void
 }
 
 /**
@@ -49,7 +47,6 @@ export type IncDecrOptions = MetricsOptions & {
  */
 export interface IncrementFn {
   (schema: ElasticCommonSchema, measurementName: string, options?: IncDecrOptions): void
-  (measurementName: string, options?: IncDecrOptions): void
 }
 
 /**
@@ -57,7 +54,6 @@ export interface IncrementFn {
  */
 export interface DecrementFn {
   (schema: ElasticCommonSchema, measurementName: string, options?: IncDecrOptions): void
-  (measurementName: string, options?: IncDecrOptions): void
 }
 
 /**
@@ -72,7 +68,6 @@ export interface StopTimerFn {
  */
 export interface TimerFn {
   (schema: ElasticCommonSchema, timerName: string, options?: MetricsOptions): StopTimerFn
-  (timerName: string, options?: MetricsOptions): StopTimerFn
 }
 
 /**
@@ -110,12 +105,18 @@ export type StartTrace = TraceIdentifiers & {
 /**
  * Observe options.
  */
-export type ObserveOptions = {
-  span?: StartSpan,
+export type ObserveOptions = ChildOptions & MetricsOptions & {
   /**
-   * Unnecessary if span.name is present.
+   * Name of the timer (unnecessary if span.name is present).
    */
   name?: string,
+}
+
+/**
+ * Observe the execution of a block of code.
+ */
+export interface ObserveFn {
+  <T>(schema: ElasticCommonSchema, fn: (ctx: GoobContext) => Promise<T>, options?: ObserveOptions): Promise<T>
 }
 
 /**
@@ -236,12 +237,22 @@ export default interface GoobContext {
   decrement: DecrementFn,
 
   /**
+   * Start a timer.  This has the same behavior as "Observe", except, the caller is responsible for manually
+   * stopping the timer.
+   *
+   * @example
+   *
+   * const stop = ctx.startTimer('execute_task');
+   * // do stuff
+   * stop();
+   */
+  startTimer: TimerFn,
+
+  /**
    * Executes a function, measuring the time to execute, and if a trace is present in the context, automatically
    * creating a span for the observation.
-   * @param fn
-   * @param options
    */
-  observe<T>(fn: () => Promise<T>, options?: ObserveOptions): Promise<T>
+  observe: ObserveFn
 
   /**
    * Create a child context, which inherits the metadata of the parent.  When used in combination with "close()",
